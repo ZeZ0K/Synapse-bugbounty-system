@@ -12,7 +12,7 @@ Informative. Killing a weak finding early is a success and gets reported as one.
 ## Running it
 
 ```bash
-cd /home/zezok/Security/Bounty/ClaudeBountySystem
+cd Synapse-bugbounty-system
 claude
 ```
 
