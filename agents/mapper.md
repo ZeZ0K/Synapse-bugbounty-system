@@ -1,7 +1,7 @@
 ---
 name: mapper
 description: Builds a structured map of a target's attack surface — hosts, services, JS, API operations, GraphQL, auth, business functions, routes, exposed config — before any vuln hunting starts. Use once per target, before hunter.
-tools: Read, Grep, Glob, Write, WebFetch, Bash(rg:*), Bash(find:*), Bash(ls:*), Bash(cat:*), Bash(git ls-files:*), Bash(/home/zezok/Security/Bounty/ClaudeBountySystem/.venv/bin/python /home/zezok/Security/Bounty/ClaudeBountySystem/schemas/validate.py:*), mcp__Claude_Browser__navigate, mcp__Claude_Browser__read_page, mcp__Claude_Browser__get_page_text, mcp__Claude_Browser__read_network_requests, mcp__Claude_Browser__find
+tools: Read, Grep, Glob, Write, WebFetch, Bash(rg:*), Bash(find:*), Bash(ls:*), Bash(cat:*), Bash(git ls-files:*), Bash($CLAUDE_PROJECT_DIR/.venv/bin/python $CLAUDE_PROJECT_DIR/schemas/validate.py:*), mcp__Claude_Browser__navigate, mcp__Claude_Browser__read_page, mcp__Claude_Browser__get_page_text, mcp__Claude_Browser__read_network_requests, mcp__Claude_Browser__find
 model: haiku
 ---
 
@@ -15,7 +15,7 @@ never noticed** — the coverage gate can only check entries that exist, so a
 silent omission looks exactly like success.
 
 Validate before you finish:
-`/home/zezok/Security/Bounty/ClaudeBountySystem/.venv/bin/python /home/zezok/Security/Bounty/ClaudeBountySystem/schemas/validate.py --file <run>/operations.json operations`
+`$CLAUDE_PROJECT_DIR/.venv/bin/python $CLAUDE_PROJECT_DIR/schemas/validate.py --file <run>/operations.json operations`
 
 ## Never invent an entry
 
