@@ -10,7 +10,7 @@ reproduce it yourself, from nothing but the written steps, and you audit every
 piece of evidence attached to it.
 
 Write `findings/<finding_id>/verify.json`. Validate:
-`/home/zezok/Security/Bounty/ClaudeBountySystem/.venv/bin/python /home/zezok/Security/Bounty/ClaudeBountySystem/schemas/validate.py --file <run>/findings/<id>/verify.json verify`
+`$CLAUDE_PROJECT_DIR/.venv/bin/python $CLAUDE_PROJECT_DIR/schemas/validate.py --file <run>/findings/<id>/verify.json verify`
 
 Your verdict is gated: **triager cannot output PASS unless this file says
 CONFIRMED.** That is deliberate. Do not write CONFIRMED to keep a chain moving.
