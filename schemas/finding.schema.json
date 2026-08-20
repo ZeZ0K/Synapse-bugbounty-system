@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/bounty/finding.schema.json",
+  "title": "Candidate finding",
+  "description": "findings/<finding_id>/finding.json \u2014 written by the orchestrator from hunter output, updated with skeptic's verdict. The escalate/verify/triage files are separate so each stage's verdict is independently checkable by a hook.",
+  "type": "object",
+  "required": [
+    "finding_id",
+    "title",
+    "module",
+    "operation_ids",
+    "stage"
+  ],
+  "anyOf": [
+    {
+      "required": [
+        "hunter"
+      ]
+    },
+    {
+      "required": [
+        "prowler"
+      ]
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "finding_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "module": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operation_ids": {
+      "description": "operations.json ids this finding touches. Keeps coverage and findings joined.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stage": {
+      "description": "Where the finding is in the chain. 'parked' means it exhausted its single retry and is waiting on the user.",
+      "enum": [
+        "hunted",
+        "prowled",
+        "skepticked",
+        "killed",
+        "escalated",
+        "verified",
+        "triaged",
+        "parked",
+        "reported"
+      ]
+    },
+    "retry_count": {
+      "description": "Times triager sent this back to escalator. Hard cap 1 \u2014 a second non-PASS parks it.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "hunter": {
+      "type": "object",
+      "required": [
+        "flow",
+        "hypothesis",
+        "poc_sketch"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "flow": {
+          "description": "Entry point to sink, with file:line at each step.",
+          "type": "string",
+          "minLength": 1
+        },
+        "hypothesis": {
+          "description": "The specific concrete attack: what input, what validation is missing or bypassable, what impact.",
+          "type": "string",
+          "minLength": 1
+        },
+        "poc_sketch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "prowler": {
+      "description": "Set instead of `hunter` when the candidate came from the follow-up phase rather than the linear pass. Same content contract as `hunter` \u2014 a candidate is a candidate \u2014 plus a pointer back to the anomaly it grew from, so a kill can be traced to its origin and not re-pursued forever.",
+      "type": "object",
+      "required": [
+        "flow",
+        "hypothesis",
+        "poc_sketch",
+        "source_anomaly_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "flow": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hypothesis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "poc_sketch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_anomaly_id": {
+          "description": "The anomalies.json id this came from. Findings carrying this are excluded from prowler's own input set by default \u2014 otherwise it re-litigates its own kills every run.",
+          "type": "string",
+          "minLength": 1
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "skeptic": {
+      "type": "object",
+      "required": [
+        "verdict",
+        "rationale",
+        "six_source_check"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "verdict": {
+          "enum": [
+            "KILLED",
+            "SURVIVES",
+            "SURVIVES_WITH_CAVEAT"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "caveat": {
+          "type": "string"
+        },
+        "poc_requirements": {
+          "type": "string"
+        },
+        "six_source_check": {
+          "description": "All six recorded, including explicit 'checked, nothing found'. This is what stops a later session re-litigating a dead end.",
+          "type": "object",
+          "required": [
+            "github_issues",
+            "advisories",
+            "privilege_docs",
+            "program_guidelines",
+            "changelog",
+            "forum"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "github_issues": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Source 1: the target's own public issue tracker / PR history. Key name is historical; any public tracker counts. Use 'not_applicable: <reason>' where the target has none."
+            },
+            "advisories": {
+              "type": "string",
+              "minLength": 1
+            },
+            "privilege_docs": {
+              "type": "string",
+              "minLength": 1
+            },
+            "program_guidelines": {
+              "type": "string",
+              "minLength": 1
+            },
+            "changelog": {
+              "type": "string",
+              "minLength": 1
+            },
+            "forum": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "description": "Shared evidence shape. Every artifact traces to a real tool execution in this run; anything that cannot be traced is dropped, never softened.",
+      "type": "object",
+      "required": [
+        "path",
+        "produced_by",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "description": "Relative to the run dir, under evidence/<finding_id>/.",
+          "type": "string",
+          "minLength": 1
+        },
+        "produced_by": {
+          "description": "The exact tool invocation that produced it, e.g. \"Bash: curl -s -u attacker:... http://localhost:9200/_x\". Not a paraphrase.",
+          "type": "string",
+          "minLength": 1
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

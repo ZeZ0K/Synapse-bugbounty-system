@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/bounty/accounts.schema.json",
+  "title": "Accounts and ownership ledger",
+  "description": "Per-account session pointers plus a ledger of every provisioned resource. This ledger is what turns 'changed an ID, got a 200' into a provable access-control finding — without a recorded expected-access set, a 200 proves nothing.",
+  "type": "object",
+  "required": ["provisioned_at", "mode", "target_version", "accounts", "resources"],
+  "additionalProperties": false,
+  "properties": {
+    "provisioned_at": { "type": "string", "format": "date-time" },
+    "target_version": {
+      "description": "Exact product version the rig runs. Findings must reproduce on a currently maintained release — Elastic maintains the two newest minors — so a run provisioned on a stale rig is unpayable and nothing downstream would otherwise notice.",
+      "type": "string",
+      "minLength": 1
+    },
+    "mode": {
+      "description": "api = self-hosted target provisioned through its own admin API. saas = live third-party signup, which the agent cannot perform and must hand to the user.",
+      "enum": ["api", "saas"]
+    },
+    "accounts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "role", "identity", "session"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "attacker and victim at minimum.",
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "description": "The privilege tier this account is meant to represent. Must be a role a real low-privilege user could hold — an attacker account quietly given extra privilege invalidates every finding built on it.",
+            "type": "string"
+          },
+          "identity": {
+            "description": "Username / email / user id as the target knows it. Never a password.",
+            "type": "string"
+          },
+          "session": {
+            "type": "object",
+            "required": ["kind", "ref", "status"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "enum": ["cookie", "bearer", "basic", "api_key", "browser_profile"] },
+              "ref": {
+                "description": "Pointer to where the material lives (env var name, browser profile id, gitignored file path). Never the secret itself — this file is committed.",
+                "type": "string"
+              },
+              "status": { "enum": ["active", "expired", "revoked", "not_provisioned"] },
+              "established_at": { "type": "string", "format": "date-time" },
+              "last_validated": { "type": "string", "format": "date-time" }
+            }
+          },
+          "provisioned_by": {
+            "description": "agent = created through the target's admin API. user = the user completed signup, because account creation and password entry are not actions the agent performs.",
+            "enum": ["agent", "user"]
+          }
+        }
+      }
+    },
+    "resources": {
+      "description": "At least one resource per resource type per account. Cross-account access attempts are scored against expected_access. An empty ledger cannot prove anything, so at least one entry is required.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "owner", "expected_access"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "type": { "type": "string", "minLength": 1 },
+          "owner": {
+            "description": "accounts[].name of the owning account.",
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_access": {
+            "description": "Per-operation, not per-account. Access control is not flat: an attacker sharing a space may legitimately READ a victim's monitor and must not DELETE it. A flat account list forces a choice between manufacturing a false positive on the legitimate read and silently absolving the unauthorized delete — the second discards exactly the finding shape that scored 8.1 here. Any account/operation pair not listed is expected to be denied.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["account", "operations", "basis"],
+              "additionalProperties": false,
+              "properties": {
+                "account": {
+                  "description": "accounts[].name.",
+                  "type": "string",
+                  "minLength": 1
+                },
+                "operations": {
+                  "description": "What this account is legitimately allowed to do. Anything outside this list succeeding is the finding.",
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "enum": ["read", "list", "create", "update", "delete", "share", "execute"] }
+                },
+                "basis": {
+                  "description": "Where the assertion came from — doc URL or privileges-reference section. Derived from the product's documented model, never from observed behaviour: if observed access already exceeds documented access, that is the finding, not a reason to widen the ledger.",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "created_at": { "type": "string", "format": "date-time" },
+          "scope": {
+            "description": "Space / tenant / org the resource lives in, where the target has such a concept.",
+            "type": "string"
+          },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}

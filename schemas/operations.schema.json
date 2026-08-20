@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/bounty/operations.schema.json",
+  "title": "Operations inventory",
+  "description": "The coverage checklist every later phase reports against. Produced by mapper; outcome fields filled in by whoever touches the operation. Not a URL list, and no vulnerability hypotheses.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id", "area", "method", "path_or_selector",
+      "auth_required", "mutates_state", "notes",
+      "module", "outcome"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "description": "Stable across re-maps. Convention: <module>.<method>.<slug>",
+        "type": "string",
+        "minLength": 1
+      },
+      "area": {
+        "description": "Feature area or plugin the operation belongs to.",
+        "type": "string"
+      },
+      "method": {
+        "description": "HTTP verb, or UI/RPC/CLI for non-HTTP operations.",
+        "type": "string"
+      },
+      "path_or_selector": { "type": "string", "minLength": 1 },
+      "auth_required": {
+        "description": "unknown is legitimate at map time but must resolve before the owning module completes.",
+        "enum": ["none", "user", "admin", "unknown"]
+      },
+      "mutates_state": { "type": "boolean" },
+      "notes": { "type": "string" },
+
+      "module": {
+        "description": "Which state.json module owns this operation. The join key gate_module_complete.py uses; without it coverage cannot be enforced.",
+        "type": "string",
+        "minLength": 1
+      },
+      "source_ref": {
+        "description": "file:line of the route registration (source mode) or the request that revealed it (web mode).",
+        "type": "string"
+      },
+      "declared_privilege": {
+        "description": "Authorization the code claims to require, verbatim. Source mode: the security.authz / RestHandler privilege block.",
+        "type": "string"
+      },
+
+      "outcome": {
+        "description": "null until decided. Every operation gets one explicitly; none are ever dropped.",
+        "type": ["string", "null"],
+        "enum": [null, "tested", "blocked", "excluded", "not_applicable"]
+      },
+      "outcome_reason": {
+        "description": "Required in practice for blocked/excluded/not_applicable — those are meaningless without one.",
+        "type": "string"
+      },
+      "outcome_at": { "type": "string", "format": "date-time" },
+      "finding_ids": {
+        "description": "Findings this operation produced, if any.",
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+
+    "allOf": [
+      {
+        "if": {
+          "properties": { "outcome": { "enum": ["blocked", "excluded", "not_applicable"] } },
+          "required": ["outcome"]
+        },
+        "then": {
+          "required": ["outcome_reason"],
+          "properties": { "outcome_reason": { "minLength": 1 } }
+        }
+      }
+    ]
+  }
+}

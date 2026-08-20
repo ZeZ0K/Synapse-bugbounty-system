@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/bounty/state.schema.json",
+  "title": "Run state",
+  "description": "The recovery record for a single run. A fresh session pointed at runs/<target>/<run_id>/ must be able to resume from this file alone.",
+  "type": "object",
+  "required": ["target", "run_id", "started", "setup", "modules", "blocked"],
+  "additionalProperties": false,
+  "properties": {
+    "target": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "started": { "type": "string", "format": "date-time" },
+    "mode": {
+      "description": "source = review a cloned repo; web = live HTTP target. Determines which mapper/provisioner mode applies.",
+      "enum": ["source", "web"]
+    },
+    "setup": {
+      "type": "object",
+      "required": ["mapper_done", "provisioner_done", "policy_checked"],
+      "additionalProperties": false,
+      "properties": {
+        "mapper_done": { "type": "boolean" },
+        "provisioner_done": { "type": "boolean" },
+        "policy_checked": {
+          "description": "Spec section 5. Re-read per program before provisioner or any live phase. Recorded so a resumed run can tell whether it actually ran.",
+          "type": "object",
+          "required": ["done"],
+          "additionalProperties": false,
+          "properties": {
+            "done": { "type": "boolean" },
+            "checked_at": { "type": "string", "format": "date-time" },
+            "policy_url": { "type": "string" },
+            "automation_allowed": {
+              "description": "unknown is not a pass. Anything but 'yes' must raise a blocked entry before live testing.",
+              "enum": ["yes", "no", "ambiguous", "unknown"]
+            },
+            "rate_limit_notes": { "type": "string" },
+            "notes": { "type": "string" }
+          }
+        }
+      }
+    },
+    "modules": {
+      "description": "Module name -> status. A module may only reach 'complete' when every operations.json entry carrying that module has an outcome (enforced by gate_module_complete.py).",
+      "type": "object",
+      "additionalProperties": { "enum": ["pending", "in_progress", "complete"] }
+    },
+    "blocked": {
+      "description": "Anything needing the user. Never guessed past, never silently retried.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["reason", "needed_from_user", "raised_at"],
+        "additionalProperties": false,
+        "properties": {
+          "reason": { "type": "string", "minLength": 1 },
+          "needed_from_user": {
+            "description": "The exact thing required, specific enough to act on without re-reading the run.",
+            "type": "string",
+            "minLength": 1
+          },
+          "raised_at": { "type": "string", "format": "date-time" },
+          "module": { "type": "string" },
+          "resolved_at": { "type": "string", "format": "date-time" },
+          "resolution": { "type": "string" }
+        }
+      }
+    }
+  }
+}

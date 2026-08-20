@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/bounty/verify.schema.json",
+  "title": "Verification result",
+  "description": "findings/<finding_id>/verify.json. Read by gate_triage_pass.py — triager cannot output PASS unless verdict here is CONFIRMED.",
+  "type": "object",
+  "required": ["finding_id", "verdict", "reproduced_from", "evidence_audit"],
+  "additionalProperties": false,
+  "properties": {
+    "finding_id": { "type": "string", "minLength": 1 },
+    "verdict": { "enum": ["CONFIRMED", "COULD_NOT_REPRODUCE"] },
+    "reproduced_from": {
+      "description": "Must be 'poc_steps'. Reproducing from the prior agent's reasoning instead of the written steps is not verification — it is agreement.",
+      "const": "poc_steps"
+    },
+    "reproduction": {
+      "type": "object",
+      "required": ["attempted_at", "result"],
+      "additionalProperties": false,
+      "properties": {
+        "attempted_at": { "type": "string", "format": "date-time" },
+        "result": { "type": "string", "minLength": 1 },
+        "steps_insufficient": {
+          "description": "Steps that had to be guessed at or filled in. Any entry here is a defect in the PoC even if reproduction succeeded — the program will hit the same gap.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "environment": { "type": "string" }
+      }
+    },
+    "minimized_poc": {
+      "description": "The tightest sequence that still demonstrates the issue.",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "evidence_audit": {
+      "description": "Every artifact cited upstream, checked against actual tool-call history rather than taken on trust.",
+      "type": "object",
+      "required": ["items_checked", "items_traced", "dropped"],
+      "additionalProperties": false,
+      "properties": {
+        "items_checked": { "type": "integer", "minimum": 0 },
+        "items_traced": {
+          "description": "How many resolved to a real tool execution in this run. Must equal items_checked minus dropped.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "dropped": {
+          "description": "Artifacts that could not be traced. These are removed from the finding, not retained with a caveat.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "reason"],
+            "additionalProperties": false,
+            "properties": {
+              "path": { "type": "string" },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "https://local/bounty/finding.schema.json#/$defs/evidence" }
+    },
+    "at": { "type": "string", "format": "date-time" }
+  }
+}

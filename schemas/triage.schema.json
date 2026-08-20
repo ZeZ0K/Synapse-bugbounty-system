@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/bounty/triage.schema.json",
+  "title": "Triage verdict",
+  "description": "findings/<finding_id>/triage.json \u2014 the last gate before anything reaches the user. gate_triage_pass.py denies a PASS written here unless the sibling verify.json says CONFIRMED.",
+  "type": "object",
+  "required": [
+    "finding_id",
+    "verdict",
+    "conceded_privilege_check",
+    "severity",
+    "rationale"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "finding_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verdict": {
+      "description": "PASS = ready for the user to review and submit. BLOCK = a specific gap must close first. DOWNGRADE = real but lower than claimed. REJECT = should not be filed.",
+      "enum": [
+        "PASS",
+        "BLOCK",
+        "DOWNGRADE",
+        "REJECT"
+      ]
+    },
+    "conceded_privilege_check": {
+      "description": "Run every time, no exceptions. Is the 'vulnerability' actually a privilege the program has already conceded? This is the single most common reason a report comes back Informative. See memory/general-lessons.md lessons 1 and 2, and the target's own corpus under memory/closed-reports/<target>/.",
+      "type": "object",
+      "required": [
+        "performed",
+        "conclusion",
+        "sources_checked"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "performed": {
+          "const": true
+        },
+        "conclusion": {
+          "enum": [
+            "not_conceded",
+            "already_conceded",
+            "partially_conceded",
+            "unclear"
+          ]
+        },
+        "sources_checked": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "detail": {
+          "type": "string"
+        }
+      }
+    },
+    "severity": {
+      "type": "object",
+      "required": [
+        "level",
+        "cvss_vector",
+        "cvss_score"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "enum": [
+            "none",
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+        "cvss_vector": {
+          "description": "CVSS 3.1. C/I/A take None/Low/High only \u2014 there is no Medium.",
+          "type": "string",
+          "pattern": "^(CVSS:3\\.1/)?AV:[NALP]/AC:[LH]/PR:[NLH]/UI:[NR]/S:[UC]/C:[NLH]/I:[NLH]/A:[NLH]$"
+        },
+        "cvss_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "inflation_check": {
+          "description": "Metrics considered for a higher value and rejected, with the spec reason. Pick the defensible score, not the most dramatic one that technically fits.",
+          "type": "string"
+        }
+      }
+    },
+    "classification": {
+      "description": "Vulnerability class / CWE.",
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "blocking_gaps": {
+      "description": "Required when verdict is BLOCK. What specifically must close, in actionable terms.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "duplicate_risk": {
+      "description": "No public-source check can see another researcher's pending private report. Weight higher for well-known bug-class shapes in heavily-hunted modules.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "calibration_checked": {
+      "description": "Which memory/general-lessons.md lessons (always applicable) and which memory/closed-reports/<target>/ entries were read. An empty target corpus is expected on a new target; the general lessons are still required.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "verdict": {
+            "const": "BLOCK"
+          }
+        },
+        "required": [
+          "verdict"
+        ]
+      },
+      "then": {
+        "required": [
+          "blocking_gaps"
+        ],
+        "properties": {
+          "blocking_gaps": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

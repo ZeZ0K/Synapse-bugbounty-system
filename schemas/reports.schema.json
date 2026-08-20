@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/bounty/reports.schema.json",
+  "title": "Filed reports",
+  "description": "Reports actually submitted to the program. monitor reads this. Distinct from findings/ — a finding only appears here once the user has submitted it.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["report_id", "program", "title", "submitted", "status"],
+    "additionalProperties": false,
+    "properties": {
+      "report_id": {
+        "description": "Platform report id (e.g. H1 #3887567). Local placeholder until assigned.",
+        "type": "string",
+        "minLength": 1
+      },
+      "program": { "type": "string", "minLength": 1 },
+      "finding_id": {
+        "description": "Back-reference to runs/<target>/<run_id>/findings/<id>/.",
+        "type": "string"
+      },
+      "title": { "type": "string", "minLength": 1 },
+      "submitted": { "type": "string", "format": "date-time" },
+      "status": {
+        "enum": ["submitted", "triaged", "needs_info", "resolved", "duplicate", "informative", "not_applicable", "closed"]
+      },
+      "severity_claimed": { "type": "string" },
+      "severity_assigned": { "type": "string" },
+      "cvss_vector": { "type": "string" },
+      "bounty": { "type": ["number", "null"] },
+      "report_path": {
+        "description": "Local path to the submitted markdown, so monitor can retest from the same steps the program received.",
+        "type": "string"
+      },
+      "poc_path": { "type": "string" },
+      "last_checked": { "type": "string", "format": "date-time" },
+      "last_activity": {
+        "description": "Timestamp of the most recent activity on the platform side. Drives the 10-day staleness retest.",
+        "type": "string",
+        "format": "date-time"
+      },
+      "activity_log": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["at", "event"],
+          "additionalProperties": false,
+          "properties": {
+            "at": { "type": "string", "format": "date-time" },
+            "event": { "type": "string" },
+            "detail": { "type": "string" },
+            "observed_by": { "enum": ["monitor", "user"] }
+          }
+        }
+      },
+      "retests": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["at", "result"],
+          "additionalProperties": false,
+          "properties": {
+            "at": { "type": "string", "format": "date-time" },
+            "result": { "enum": ["still_reproduces", "no_longer_reproduces", "could_not_test"] },
+            "detail": { "type": "string" }
+          }
+        }
+      },
+      "draft_reply_path": {
+        "description": "monitor drafts replies here. It never sends them.",
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+# Per-target source clones, run state, and findings live under targets/ and
+# runs/ once you point this system at a real target — they're not part of
+# the reusable system and shouldn't be committed here.
+targets/*
+!targets/.gitkeep
+runs/*
+!runs/.gitkeep
+
+# Tooling venv (jsonschema for schemas/validate.py). Hooks are stdlib-only
+# and must never depend on this.
+.venv/
+
+# Test-rig runtime artifacts — regenerable, large, or container-owned
+**/esdata/
+**/jars/
+**/*.jar
+**/node_modules/
+
+# Run artifacts that are large or derived.
+**/runs/**/evidence/**/*.pcap
+**/runs/**/evidence/**/*.mp4
+
+# Never commit credentials or session material
+**/.env
+**/*.token
+**/session*.json
+**/cookies*.json
+accounts.local.json
+
+# Python bytecode
+__pycache__/
+*.pyc

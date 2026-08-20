@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/bounty/escalate.schema.json",
+  "title": "Escalation result",
+  "description": "findings/<finding_id>/escalate.json. Proves real impact from a realistic in-scope attacker position, or honestly reports that it could not.",
+  "type": "object",
+  "required": [
+    "finding_id",
+    "verdict",
+    "in_scope",
+    "attacker_position",
+    "impact_demonstrated",
+    "evidence"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "finding_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verdict": {
+      "description": "ESCALATED = a higher impact was actually executed. AS_FOUND = the original impact stands, nothing further reached. NOT_ESCALATABLE = the finding does not survive contact with a realistic attacker position.",
+      "enum": [
+        "ESCALATED",
+        "AS_FOUND",
+        "NOT_ESCALATABLE"
+      ]
+    },
+    "in_scope": {
+      "type": "object",
+      "required": [
+        "confirmed",
+        "citation"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "confirmed": {
+          "type": "boolean"
+        },
+        "citation": {
+          "description": "The specific policy/scope line relied on. 'I assume it's in scope' is not a citation.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "attacker_position": {
+      "type": "object",
+      "required": [
+        "description",
+        "privileges_held",
+        "realistic",
+        "realism_argument"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "privileges_held": {
+          "description": "Every privilege the attacker needs, named exactly. A privilege quietly assumed away here is the single most common cause of an Informative closure.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requires_admin_trust": {
+          "description": "True if the exploit needs the attacker to already be an admin-configured trusted entity (allowlist entry, preconfigured connector). Findings of this shape have been triaged Informational regardless of technical quality.",
+          "type": "boolean"
+        },
+        "realistic": {
+          "type": "boolean"
+        },
+        "realism_argument": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "impact_demonstrated": {
+      "type": "object",
+      "required": [
+        "summary",
+        "executed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executed": {
+          "description": "False means it was reasoned about, not run. Escalations that were not executed do not count as escalations.",
+          "type": "boolean"
+        },
+        "ceiling_reason": {
+          "description": "Why no higher impact was reached \u2014 the boundary that actually stopped it.",
+          "type": "string"
+        },
+        "not_attempted": {
+          "description": "Escalations deliberately not attempted because they would be unsafe, destructive, or out of scope.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "poc_steps": {
+      "description": "Ordered, self-contained. verifier reproduces from these alone and never sees this file's reasoning.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "https://local/bounty/finding.schema.json#/$defs/evidence"
+      }
+    },
+    "calibration_checked": {
+      "description": "Which memory/general-lessons.md lessons (always applicable) and which memory/closed-reports/<target>/ entries were read. An empty target corpus is expected on a new target; the general lessons are still required.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

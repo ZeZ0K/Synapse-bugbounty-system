@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker inspect:*)",
+      "Bash(docker logs:*)",
+      "Bash(jq:*)",
+      "Bash(rg:*)",
+      "Bash(semgrep:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(git log:*)",
+      "Bash(git blame:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-files:*)",
+      "Bash(gh api search/issues:*)",
+      "Bash(gh api repos:*)",
+      "Bash(python3 $CLAUDE_PROJECT_DIR/tools/set_outcome.py:*)",
+      "Bash(python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py:*)",
+      "Bash(python3 $CLAUDE_PROJECT_DIR/tools/h1_status.py:*)",
+      "Bash($CLAUDE_PROJECT_DIR/.venv/bin/python $CLAUDE_PROJECT_DIR/schemas/validate.py:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/gate_module_complete.py\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/gate_triage_pass.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

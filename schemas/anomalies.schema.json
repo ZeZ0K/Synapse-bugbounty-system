@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/bounty/anomalies.schema.json",
+  "title": "Anomaly ledger",
+  "description": "runs/<target>/anomalies.json — target-level, NOT run-scoped, so it accumulates across runs. Things an agent noticed that were odd, inconsistent or unexplained but did not clear the bar for a reportable finding. The linear pass throws this signal away; prowler picks it back up. An entry here is explicitly NOT a finding and must never be reported as one.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "source_agent", "location", "what_was_odd", "why_not_reportable", "status"],
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "description": "Stable and unique across the whole ledger, including across runs. Convention: <module>.<short-slug>",
+        "type": "string",
+        "minLength": 1
+      },
+      "source_agent": {
+        "enum": ["hunter", "skeptic", "triager", "prowler", "chainer", "mapper"]
+      },
+      "location": {
+        "description": "file:line, or an operations.json id. Specific enough that a later run can find it again without re-deriving the context.",
+        "type": "string",
+        "minLength": 1
+      },
+      "what_was_odd": {
+        "description": "The observation itself, stated factually. Not a hypothesis, not a severity guess — what you saw that did not fit.",
+        "type": "string",
+        "minLength": 1
+      },
+      "why_not_reportable": {
+        "description": "Why it did not clear the finding bar. This is the load-bearing field: 'could not name the triggering request', 'looked deliberate but no source confirms it', 'only odd next to a sibling I did not read'. It tells prowler what work is actually outstanding.",
+        "type": "string",
+        "minLength": 1
+      },
+      "status": {
+        "description": "open = never pursued. pursued = prowler worked it, inconclusive, still live. resolved_benign = understood and genuinely fine. escalated = became a candidate and entered the chain at skeptic.",
+        "enum": ["open", "pursued", "resolved_benign", "escalated"]
+      },
+      "run_id": {
+        "description": "Run that logged it.",
+        "type": "string"
+      },
+      "logged_at": { "type": "string", "format": "date-time" },
+      "module": { "type": "string" },
+      "operation_ids": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "recurrence": {
+        "description": "Other anomaly ids describing the same shape elsewhere. A pattern seen in three modules is worth more than three separate curiosities, and this is the field that makes that visible.",
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "resolved_by": {
+        "description": "Agent that closed it out.",
+        "type": "string"
+      },
+      "resolution_run_id": { "type": "string" },
+      "resolution": {
+        "description": "Required once status leaves 'open'. For resolved_benign this is the actual mechanism that makes the behaviour safe, with file:line — not 'looks fine'. A benign verdict with no mechanism is an unexamined anomaly wearing a resolved label.",
+        "type": "string"
+      },
+      "finding_id": {
+        "description": "Set when status is 'escalated' — the candidate this became.",
+        "type": "string"
+      },
+      "prowler_attempts": {
+        "description": "Times prowler has escalated this and had it come back killed. A second attempt requires naming a specific new source, so a rhetorically interesting but genuinely benign anomaly cannot consume a pursuit slot forever.",
+        "type": "integer",
+        "minimum": 0
+      },
+      "priority": {
+        "description": "prowler's ranking of what it did not get to, so the leftovers are ordered rather than silently dropped.",
+        "enum": ["high", "medium", "low"]
+      }
+    },
+
+    "allOf": [
+      {
+        "if": {
+          "properties": { "status": { "enum": ["pursued", "resolved_benign", "escalated"] } },
+          "required": ["status"]
+        },
+        "then": {
+          "required": ["resolution", "resolved_by"],
+          "properties": { "resolution": { "minLength": 1 } }
+        }
+      },
+      {
+        "if": {
+          "properties": { "status": { "const": "escalated" } },
+          "required": ["status"]
+        },
+        "then": { "required": ["finding_id"] }
+      }
+    ]
+  }
+}
