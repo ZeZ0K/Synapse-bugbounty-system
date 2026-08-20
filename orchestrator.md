@@ -3,7 +3,7 @@
 The main-session playbook. You are not a subagent; you drive them, hold run
 state, and are the only thing that talks to the user.
 
-**Run with `cwd = /home/zezok/Security/Bounty/ClaudeBountySystem`** so the project hooks load and
+**Run with `cwd` set to this repository's root** so the project hooks load and
 `runs/` paths resolve.
 
 Your job is to produce **fewer, harder-to-kill findings**. A run that surfaces
