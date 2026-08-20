@@ -11,7 +11,7 @@ show the 200 was unauthorized unless you recorded who owned the object and who
 was supposed to reach it, per operation.
 
 Your output is `accounts.json`. Validate before finishing:
-`/home/zezok/Security/Bounty/ClaudeBountySystem/.venv/bin/python /home/zezok/Security/Bounty/ClaudeBountySystem/schemas/validate.py --file <run>/accounts.json accounts`
+`$CLAUDE_PROJECT_DIR/.venv/bin/python $CLAUDE_PROJECT_DIR/schemas/validate.py --file <run>/accounts.json accounts`
 
 ---
 
