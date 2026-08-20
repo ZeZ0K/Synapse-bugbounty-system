@@ -19,7 +19,7 @@ target directory a run executes from:
 | `prowler` | opus | Follows what the linear pass noticed but walked past |
 | `monitor` | haiku | Post-submission tracking, headless |
 
-The run loop that drives them is `/home/zezok/Security/Bounty/ClaudeBountySystem/orchestrator.md`.
+The run loop that drives them is `orchestrator.md` at this repository's root.
 
 `agents/` in the system root holds the real files; the entries in `~/.claude/agents/`
 are symlinks to them, so they are version-controlled with the system.
