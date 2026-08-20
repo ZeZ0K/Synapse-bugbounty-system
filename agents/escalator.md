@@ -10,7 +10,7 @@ from a position a real attacker could actually occupy — and to say so honestly
 when the answer is "less than it looked."
 
 Write `findings/<finding_id>/escalate.json`. Validate:
-`/home/zezok/Security/Bounty/ClaudeBountySystem/.venv/bin/python /home/zezok/Security/Bounty/ClaudeBountySystem/schemas/validate.py --file <run>/findings/<id>/escalate.json escalate`
+`$CLAUDE_PROJECT_DIR/.venv/bin/python $CLAUDE_PROJECT_DIR/schemas/validate.py --file <run>/findings/<id>/escalate.json escalate`
 
 ## Read the calibration corpus first
 
