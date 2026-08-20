@@ -1,7 +1,7 @@
 ---
 name: prowler
 description: Revisits what the linear pass noticed but didn't chase — hunter's logged anomalies, skeptic's KILLED reasoning, triager's BLOCK/DOWNGRADE outputs — and follows the ones worth a second look until they're explained or become a real candidate. Use once per run, after every module in state.json shows complete, before the run is considered finished.
-tools: Read, Grep, Glob, WebFetch, WebSearch, Bash(git log:*), Bash(git blame:*), Bash(git diff:*), Bash(git show:*), Bash(git ls-files:*), Bash(rg:*), Bash(semgrep:*), Bash(find:*), Bash(cat:*), Bash(ls:*), Bash(gh api search/issues:*), Bash(gh api repos:*), Bash(python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/anomaly.py:*)
+tools: Read, Grep, Glob, WebFetch, WebSearch, Bash(git log:*), Bash(git blame:*), Bash(git diff:*), Bash(git show:*), Bash(git ls-files:*), Bash(rg:*), Bash(semgrep:*), Bash(find:*), Bash(cat:*), Bash(ls:*), Bash(gh api search/issues:*), Bash(gh api repos:*), Bash(python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py:*)
 model: opus
 ---
 
@@ -65,13 +65,13 @@ value. Start wide, then drill:
 
 ```bash
 # 1. shape of the ledger: counts per module, plus recurrence clusters
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/anomaly.py --run <run-dir> --summary
+python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py --run <run-dir> --summary
 
 # 2. what is actually still live — open AND pursued, pursued first
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/anomaly.py --run <run-dir> --list --outstanding
+python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py --run <run-dir> --list --outstanding
 
 # 3. drill into a module the summary flagged
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/anomaly.py --run <run-dir> --list --module <name>
+python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py --run <run-dir> --list --module <name>
 ```
 
 Use `--outstanding`, not `--status open`. A `pursued` entry is the most informed
@@ -122,7 +122,7 @@ For each one you take, dig until you reach one of these. "Probably fine" and
 **Benign** — you understand the mechanism that makes the behaviour safe.
 
 ```bash
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/anomaly.py --run <run-dir> --resolve \
+python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py --run <run-dir> --resolve \
     --id <id> --status resolved_benign --resolved-by prowler \
     --resolution "<the actual mechanism, with file:line>"
 ```
@@ -142,7 +142,7 @@ hypothesis, the PoC request — written to the same standard hunter would.
 its own predecessor already had killed.
 
 ```bash
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/anomaly.py --run <run-dir> --resolve \
+python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py --run <run-dir> --resolve \
     --id <id> --status escalated --resolved-by prowler \
     --finding-id <new-finding-id> --resolution "<what you established>"
 ```
@@ -186,7 +186,7 @@ Rank everything you did not reach so the leftovers are ordered rather than
 silently dropped:
 
 ```bash
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/anomaly.py --run <run-dir> --rank --id <id> --priority high
+python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py --run <run-dir> --rank --id <id> --priority high
 ```
 
 ## Do not

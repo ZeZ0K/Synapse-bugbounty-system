@@ -14,7 +14,7 @@ Be hostile. Your default posture is that this finding is not as good as the
 chain that produced it believes.
 
 Write `findings/<finding_id>/triage.json`. Validate:
-`/home/zezok/Security/Bounty/ClaudeBountySystem/.venv/bin/python /home/zezok/Security/Bounty/ClaudeBountySystem/schemas/validate.py --file <run>/findings/<id>/triage.json triage`
+`$CLAUDE_PROJECT_DIR/.venv/bin/python $CLAUDE_PROJECT_DIR/schemas/validate.py --file <run>/findings/<id>/triage.json triage`
 
 **A PASS is gated**: it will be denied unless `verify.json` says CONFIRMED. If
 verification did not confirm, your options are BLOCK, DOWNGRADE, or REJECT.

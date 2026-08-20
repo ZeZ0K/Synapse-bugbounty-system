@@ -22,7 +22,7 @@ closed state (`resolved`, `duplicate`, `informative`, `not_applicable`,
 ### 1. Poll status
 
 ```bash
-H1_USER=$H1_USER H1_TOKEN=$H1_TOKEN python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/h1_status.py \
+H1_USER=$H1_USER H1_TOKEN=$H1_TOKEN python3 $CLAUDE_PROJECT_DIR/tools/h1_status.py \
     --all --reports runs/<target>/<run_id>/reports.json
 ```
 
