@@ -1,7 +1,7 @@
 ---
 name: hunter
 description: Traces data flow through a specific module to find business logic and security flaws. Use for the first pass on a target directory/module.
-tools: Read, Grep, Glob, Bash(git log:*), Bash(git blame:*), Bash(git diff:*), Bash(git show:*), Bash(git ls-files:*), Bash(rg:*), Bash(semgrep:*), Bash(find:*), Bash(cat:*), Bash(ls:*), Bash(python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/set_outcome.py:*), Bash(python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/anomaly.py:*)
+tools: Read, Grep, Glob, Bash(git log:*), Bash(git blame:*), Bash(git diff:*), Bash(git show:*), Bash(git ls-files:*), Bash(rg:*), Bash(semgrep:*), Bash(find:*), Bash(cat:*), Bash(ls:*), Bash(python3 $CLAUDE_PROJECT_DIR/tools/set_outcome.py:*), Bash(python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py:*)
 model: sonnet
 ---
 
@@ -18,7 +18,7 @@ Mapper walked the repo's route-registration shapes and wrote `operations.json`. 
 Never open `operations.json` directly; on a large target it runs to hundreds of kilobytes (~800 KB on the first one) and reading it would crowd out the source you are here to trace. Pull only your own slice:
 
 ```bash
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/set_outcome.py --run <run-dir> --list <your-module>
+python3 $CLAUDE_PROJECT_DIR/tools/set_outcome.py --run <run-dir> --list <your-module>
 ```
 
 Mapper's own extraction can undercount, and it is told to report when it thinks it has. So if you find a reachable entry point with no entry, that is a mapper defect worth reporting explicitly — do not invent an id for it and do not absorb it silently. An operation that only ever existed in one hunter's head is invisible to every later stage and to the coverage gate.
@@ -30,9 +30,9 @@ Where `declared_privilege` is `unresolved` (mapper predicts this for roughly one
 Use the same script; it edits by id, which `Edit` cannot do (`"outcome": null` is byte-identical on every entry, so there is no unique anchor):
 
 ```bash
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/set_outcome.py --run <run-dir> \
+python3 $CLAUDE_PROJECT_DIR/tools/set_outcome.py --run <run-dir> \
     --id <op-id> --outcome tested --finding-ids f1,f2
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/set_outcome.py --run <run-dir> \
+python3 $CLAUDE_PROJECT_DIR/tools/set_outcome.py --run <run-dir> \
     --id <op-id> --outcome excluded --reason "<why>"
 ```
 
@@ -65,7 +65,7 @@ Rules 3 and 4 above are unchanged — your reporting bar stays exactly where it 
 So log them instead of discarding them:
 
 ```bash
-python3 /home/zezok/Security/Bounty/ClaudeBountySystem/tools/anomaly.py --run <run-dir> --add \
+python3 $CLAUDE_PROJECT_DIR/tools/anomaly.py --run <run-dir> --add \
     --id <module>.<short-slug> --source-agent hunter \
     --location "<file:line or operation id>" \
     --what-was-odd "<what you actually saw>" \
